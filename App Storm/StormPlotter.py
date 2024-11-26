@@ -146,7 +146,7 @@ class StormPlotter:
             ax.text(bar.get_x() + bar.get_width()/2, yval, int(yval), ha='center', va='bottom')
         
         
-        ax.text(0.5, 0.95, 'Chuỗi văn bản của bạn ở đây', 
+        ax.text(0.5, 1, 'Chuỗi văn bản của bạn ở đây', 
                                              transform=ax.transAxes,
                                              fontsize=12, ha='center', va='center', color='black')
 

@@ -196,12 +196,19 @@ class StormPlotter:
                 # Tăng số lượng cơn bão cho tháng tương ứng
                 monthly_storm_counts[month] += 1
 
+        # Tính toán thêm thông tin
+        min_storms_month = min(monthly_storm_counts, key=monthly_storm_counts.get)
+        min_storms_count = monthly_storm_counts[min_storms_month]
+
+        max_storms_month = max(monthly_storm_counts, key=monthly_storm_counts.get)
+        max_storms_count = monthly_storm_counts[max_storms_month]
+        avg_storms = sum(monthly_storm_counts.values()) / len(monthly_storm_counts)
+
         # Vẽ biểu đồ cột
         months = list(monthly_storm_counts.keys())
         counts = list(monthly_storm_counts.values())
 
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.bar(months, counts, color='blue')
         bars = ax.bar(months, counts, color='blue')
 
         ax.set_title("Số lượng cơn bão theo từng tháng")
@@ -209,14 +216,23 @@ class StormPlotter:
         ax.set_ylabel("Số lượng cơn bão")
         ax.set_xticks(months)  # Đặt nhãn cho các tháng
         ax.grid(axis='y')
-    
+
         for bar in bars:
             yval = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2, yval, int(yval), ha='center', va='bottom')
+            ax.text(bar.get_x() + bar.get_width() / 2, yval, int(yval), ha='center', va='bottom')
 
+        # Ghi thông tin bổ sung
+        info_text = (
+            f"Tháng có số bão nhỏ nhất: Tháng {min_storms_month} ({min_storms_count} cơn bão)\n"
+            f"Tháng có số bão lớn nhất: Tháng {max_storms_month} ({max_storms_count} cơn bão)\n"
+            f"Trung bình số bão các tháng: {avg_storms:.2f}"
+        )
+        ax.text(0.5, -0.15, info_text, transform=ax.transAxes, fontsize=12, ha='center', va='center', color='black')
 
         # Hiển thị biểu đồ
-        plt.show()  
+        plt.tight_layout()
+        plt.show()
+  
         
     def plot_storm_address(self, year):
     
