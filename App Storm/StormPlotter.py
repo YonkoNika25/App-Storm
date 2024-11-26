@@ -89,7 +89,7 @@ class StormPlotter:
         years = list(storm_counts.keys())
         counts = list(storm_counts.values())
 
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(12, 8))
         bars = ax.bar(years, counts, color='blue')
 
         ax.set_title("Số lượng cơn bão từ năm 2010 đến 2020")
@@ -126,12 +126,19 @@ class StormPlotter:
 
                 # Tăng số lượng cơn bão cho tháng tương ứng
                 monthly_storm_counts[month] += 1
+        # Tính toán thêm thông tin
+        min_storms_month = min(monthly_storm_counts, key=monthly_storm_counts.get)
+        min_storms_count = monthly_storm_counts[min_storms_month]
+
+        max_storms_month = max(monthly_storm_counts, key=monthly_storm_counts.get)
+        max_storms_count = monthly_storm_counts[max_storms_month]
+        avg_storms = sum(monthly_storm_counts.values()) / len(monthly_storm_counts)
 
         # Vẽ biểu đồ cột
         months = list(monthly_storm_counts.keys())
         counts = list(monthly_storm_counts.values())
 
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(12, 8))
         ax.bar(months, counts, color='blue')
         bars = ax.bar(months, counts, color='blue')
 
@@ -146,12 +153,15 @@ class StormPlotter:
             ax.text(bar.get_x() + bar.get_width()/2, yval, int(yval), ha='center', va='bottom')
         
         
-        ax.text(0.5, 1, 'Chuỗi văn bản của bạn ở đây', 
-                                             transform=ax.transAxes,
-                                             fontsize=12, ha='center', va='center', color='black')
+        # Ghi thông tin bổ sung
+        info_text = (
+            f"Tháng có số bão nhỏ nhất: Tháng {min_storms_month} ({min_storms_count} cơn bão)\n"
+            f"Tháng có số bão lớn nhất: Tháng {max_storms_month} ({max_storms_count} cơn bão)\n"
+            f"Trung bình số bão các tháng: {avg_storms:.2f}"
+        )
+        ax.text(0.5, -0.15, info_text, transform=ax.transAxes, fontsize=12, ha='center', va='center', color='blue')
 
-
-
+        plt.tight_layout()
         # Hiển thị biểu đồ
         plt.show()  
         
