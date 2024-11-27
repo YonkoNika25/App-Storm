@@ -208,3 +208,33 @@ class StormPlotter:
 
         # Hiển thị bản đồ
         plt.show()
+        
+    
+
+    def analyze_trends(self, variable, start_year, end_year):
+        """Phân tích xu hướng cho một biến khí tượng trong khoảng thời gian nhất định."""
+        years = range(start_year, end_year + 1)
+        trend_data = []
+
+        for year in years:
+            storm_ids = self.storm_data.get_id(year)
+            for storm_id in storm_ids:
+                positive_path = [f for f in os.listdir(self.storm_data.positive_dir) if f.startswith(f'POSITIVE_{storm_id}')][0]
+                ds = self.storm_data.load_data(os.path.join(self.storm_data.positive_dir, positive_path))
+                mean_value = ds[variable].mean().values
+                trend_data.append((year, storm_id, mean_value))
+
+        trend_df = pd.DataFrame(trend_data, columns=['Năm', 'ID Cơn Bão', 'Giá Trị Trung Bình'])
+        
+        # Vẽ biểu đồ xu hướng
+        plt.figure(figsize=(12, 6))
+        for storm_id in trend_df['ID Cơn Bão'].unique():
+            storm_data = trend_df[trend_df['ID Cơn Bão'] == storm_id]
+            plt.plot(storm_data['Năm'], storm_data['Giá Trị Trung Bình'], marker='o', label=f"Cơn bão {storm_id}")
+        
+        plt.title(f"Xu hướng của biến " + variables_l[variable] + f" từ năm {start_year} đến {end_year}")
+        plt.xlabel("Năm")
+        plt.ylabel("Giá trị trung bình")
+        
+        plt.grid()
+        plt.show()

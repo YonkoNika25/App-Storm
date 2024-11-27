@@ -4,6 +4,24 @@ from Storm_Data import StormData
 from StormPlotter import StormPlotter
 
 
+variables_l= {
+    "EPV": "Ép suất hơi nước ",
+    "H": "Độ ẩm tương đối",
+    "O3": "Ozone",
+    "OMEGA": "Tốc độ chìm của không khí ",
+    "PHIS": "Tiềm năng nhiệt động ",
+    "PS": "Áp suất tại mặt đất ",
+    "QI": "Độ ẩm đặc hiệu ",
+    "QL": "Độ ẩm lỏng ",
+    "QV": "Độ ẩm hơi nước ",
+    "RH": "Độ ẩm tương đối ",
+    "SLP": "Áp suất mặt biển",
+    "T": "Nhiệt độ",
+    "U": "Thành phần gió theo hướng Đông - Tây ",
+    "V": "Thành phần gió theo hướng Bắc - Nam "
+}
+
+
 
 class StormApp:
     def __init__(self, root, storm_data, storm_plotter):
@@ -27,6 +45,22 @@ class StormApp:
         
         self.btn_storm_path = tk.Button(self.root, text="Xem danh sách cơn bão và các biến khí tượng", command=self.view_storm_and_variable)
         self.btn_storm_path.pack(pady=10)
+        
+
+        self.btn_analyze_trends = tk.Button(self.root, text="Phân tích xu hướng", command=self.view_analyze_trends)
+        self.btn_analyze_trends.pack(pady=10)
+
+
+    def view_analyze_trends(self):
+        # Hiển thị danh sách các biến và ý nghĩa
+        variable_info = "\n".join([f"{var}: {desc}" for var, desc in variables_l.items()])
+        variable_selection = simpledialog.askstring("Chọn biến", f"Chọn biến để phân tích xu hướng:\n{variable_info}\nNhập tên biến:")
+        
+        start_year = simpledialog.askinteger("Input", "Nhập năm bắt đầu:")
+        end_year = simpledialog.askinteger("Input", "Nhập năm kết thúc:")
+        
+        if variable_selection and start_year is not None and end_year is not None:
+            self.storm_plotter.analyze_trends(variable_selection, start_year, end_year)
 
     def view_storms_by_year(self):
         start_year = simpledialog.askinteger("Input", "Nhập năm bắt đầu:")
