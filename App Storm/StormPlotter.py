@@ -88,6 +88,12 @@ class StormPlotter:
         # Vẽ biểu đồ cột
         years = list(storm_counts.keys())
         counts = list(storm_counts.values())
+        
+        min_year = min(years)
+        max_year = max(years)
+        min_value = storm_counts[min_year]
+        max_value = storm_counts[max_year]
+        avg_value = sum(counts) // len(counts)
 
         fig, ax = plt.subplots(figsize=(12, 8))
         bars = ax.bar(years, counts, color='blue')
@@ -101,6 +107,14 @@ class StormPlotter:
             yval = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2, yval, int(yval), ha='center', va='bottom')
 
+        info_text = (
+            f"Năm có số bão nhỏ nhất: Năm {min_year} ({min_value} cơn bão)\n"
+            f"Năm có số bão lớn nhất: Năm {max_year} ({max_value} cơn bão)\n"
+            f"Trung bình số bão các năm: {avg_value:.2f}"
+        )
+        ax.text(0.5, -0.15, info_text, transform=ax.transAxes, fontsize=12, ha='center', va='center', color='blue')
+
+        plt.tight_layout()
 
         # Hiển thị biểu đồ
         plt.xticks(years)  # Đặt nhãn cho các năm
