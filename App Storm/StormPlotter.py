@@ -67,7 +67,7 @@ class StormPlotter:
             axes[idx].set_xlabel("Thời gian (giờ trước khi bão đổ bộ)")
             axes[idx].set_ylabel("Giá trị trung bình")
             axes[idx].grid()
-            axes[idx].legend()
+            
             
         # Nếu có ít biến hơn số subplots, ẩn các subplots không sử dụng
         for j in range(len(vars), len(axes)):
@@ -96,7 +96,7 @@ class StormPlotter:
         fig, ax = plt.subplots(figsize=(12, 8))
         bars = ax.bar(years, counts, color='blue')
 
-        ax.set_title("Số lượng cơn bão từ năm 2010 đến 2020")
+        ax.set_title(f"Số lượng cơn bão từ năm {start_year} đến năm {end_year}")
         ax.set_xlabel("Năm")
         ax.set_ylabel("Số lượng cơn bão")
         ax.grid(axis='y')
@@ -153,8 +153,12 @@ class StormPlotter:
         fig, ax = plt.subplots(figsize=(12, 8))
         ax.bar(months, counts, color='blue')
         bars = ax.bar(months, counts, color='blue')
-
-        ax.set_title("Số lượng cơn bão theo từng tháng")
+        
+        if end_year > start_year:
+            title = f"Số lượng cơn bão theo từng tháng từ năm {start_year} đến năm {end_year}"
+        else:
+            title = f"Số lượng cơn bão theo từng tháng trong năm {start_year}"
+        ax.set_title(title)
         ax.set_xlabel("Tháng")
         ax.set_ylabel("Số lượng cơn bão")
         ax.set_xticks(months)  # Đặt nhãn cho các tháng

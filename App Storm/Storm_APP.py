@@ -5,7 +5,7 @@ from StormPlotter import StormPlotter
 
 
 variables_l= {
-    "EPV": "Ép suất hơi nước ",
+    "EPV": "Áp suất hơi nước ",
     "H": "Độ ẩm tương đối",
     "O3": "Ozone",
     "OMEGA": "Tốc độ chìm của không khí ",
@@ -33,6 +33,8 @@ class StormApp:
         self.create_widgets()
 
     def create_widgets(self):
+        self.btn_storm_path = tk.Button(self.root, text="Xem danh sách cơn bão và các biến khí tượng", command=self.view_storm_and_variable)
+        self.btn_storm_path.pack(pady=10) 
         
         self.btn_storms_by_year = tk.Button(self.root, text="Xem số cơn bão theo từng năm", command=self.view_storms_by_year)
         self.btn_storms_by_year.pack(pady=10)
@@ -43,11 +45,7 @@ class StormApp:
         self.btn_storm_path = tk.Button(self.root, text="Xem vị trí các cơn bão", command=self.view_storm_path)
         self.btn_storm_path.pack(pady=10)
         
-        self.btn_storm_path = tk.Button(self.root, text="Xem danh sách cơn bão và các biến khí tượng", command=self.view_storm_and_variable)
-        self.btn_storm_path.pack(pady=10)
-        
-
-        self.btn_analyze_trends = tk.Button(self.root, text="Phân tích xu hướng", command=self.view_analyze_trends)
+        self.btn_analyze_trends = tk.Button(self.root, text="Phân tích xu hướng các biến theo năm ", command=self.view_analyze_trends)
         self.btn_analyze_trends.pack(pady=10)
 
 
@@ -80,6 +78,10 @@ class StormApp:
         if year is not None:
             # Implement the function to plot storm paths
             self.storm_plotter.plot_storm_address(year)
+            
+    def select_all_variables(self, select_all):
+        for var, _ in self.selected_variables:
+            var.set(select_all)
             
     def view_storm_and_variable(self):
         year = simpledialog.askinteger("Input", "Bạn vui lòng nhập năm (2010 - 2020):")
@@ -125,17 +127,26 @@ class StormApp:
             checkbox_frame_variable = tk.Frame(info_window)
             checkbox_frame_variable.pack(fill='both', expand=True)
             self.selected_variables = []
+            
+            # Tạo checkbox "Chọn tất cả"
+            select_all_var = tk.IntVar()
+            select_all_chk = tk.Checkbutton(checkbox_frame_variable, text="Chọn tất cả", variable=select_all_var,command=lambda: self.select_all_variables(select_all_var.get()))
+            select_all_chk.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
             # Tạo checkbox cho từng biến
             for index, row in list_table.iterrows():
                 var = tk.IntVar()
                 chk = tk.Checkbutton(checkbox_frame_variable, text=f"{row['Ý nghĩa']}", variable=var)
-                chk.grid(row=index // columns, column=index % columns, sticky="w", padx=10, pady=5)
+                chk.grid(row=(index // columns) + 1, column=index % columns, sticky="w", padx=10, pady=5)
                 self.selected_variables.append((var, row['Tên biến']))  # Lưu trạng thái và tên biến
 
             # Thêm nút để xác nhận lựa chọn
             confirm_button = tk.Button(info_window, text="Xem thông tin các cơn bão và biến", command=self.confirm_storm_and_variable_choices)
             confirm_button.pack()
+            
+    def select_all_variables(self, select_all):
+        for var, _ in self.selected_variables:
+            var.set(select_all)
 
     def confirm_storm_and_variable_choices(self):
         # Lấy danh sách các cơn bão được chọn

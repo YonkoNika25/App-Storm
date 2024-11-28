@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 variables = {
-    "EPV": "Ép suất hơi nước ",
+    "EPV": "Áp suất hơi nước ",
     "H": "Độ ẩm tương đối",
     "O3": "Ozone",
     "OMEGA": "Tốc độ chìm của không khí ",
