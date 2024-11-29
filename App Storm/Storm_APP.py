@@ -49,6 +49,7 @@ class StormApp:
         self.btn_analyze_trends.pack(pady=10)
 
 
+
     def view_analyze_trends(self):
         # Hiển thị danh sách các biến và ý nghĩa
         variable_info = "\n".join([f"{var}: {desc}" for var, desc in variables_l.items()])
@@ -160,7 +161,7 @@ class StormApp:
             self.storm_plotter.plot_variable(selected_storm_ids,selected_variable_names)
         else:
             messagebox.showinfo("Thông báo", "Bạn chưa chọn cơn bão hoặc biến nào.")   
-
+            
 def main():
     positive_dir = "C:\\Users\\linhn\\Documents\\DATA_TC\\DATA\\POSITIVE"
     negative_dir = "C:\\Users\\linhn\\Documents\\DATA_TC\\DATA\\PastDomain"

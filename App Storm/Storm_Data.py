@@ -91,3 +91,4 @@ class StormData:
             })
         list_table = pd.DataFrame(list)
         return list_table
+    
