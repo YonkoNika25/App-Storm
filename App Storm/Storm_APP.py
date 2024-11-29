@@ -169,6 +169,8 @@ def main():
     storm_plotter = StormPlotter(storm_data)
 
     root = tk.Tk()
+    root.geometry("1200x800")  # Thiết lập kích thước cửa sổ (rộng x cao)
+
     app = StormApp(root, storm_data, storm_plotter)
     root.mainloop()
 
