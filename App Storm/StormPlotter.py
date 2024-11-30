@@ -4,8 +4,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
+#danh sách các biến khí tượng và ý nghĩa
 variables_l = {
     "EPV": "Áp suất hơi nước ",
     "H": "Độ ẩm tương đối",
@@ -26,7 +29,9 @@ variables_l = {
 class StormPlotter:
     def __init__(self, storm_data):
         self.storm_data = storm_data
-        
+    
+    
+    #hàm này biểu diễn giá trị trung bình của các biến khí tượng theo dòng thời gian cho đến thời điểm bão hình thành  
     def plot_variable(self, storm_ids, vars):
         if not storm_ids:
             print("Không có cơn bão nào được chọn.")
@@ -50,7 +55,7 @@ class StormPlotter:
         for idx, var in enumerate(vars):
             for storm_id in storm_ids:
                 negative_files = self.storm_data.get_negative(storm_id)
-                negative_files.sort()
+                negative_files =  sorted(negative_files, key=lambda x: int(x.split('_')[2]))
 
                 mean_values = np.zeros(len(negative_files))
 
@@ -76,7 +81,9 @@ class StormPlotter:
 
         plt.tight_layout()  # Tự động điều chỉnh khoảng cách giữa các subplot
         plt.show()
-        
+    
+    
+    #hàm này vẽ biểu đồ thống kê các cơn bão theo năm   
     def plot_storms(self, start_year, end_year):
         # Tạo một dictionary để lưu trữ số lượng cơn bão theo năm
         storm_counts = {}
@@ -118,7 +125,9 @@ class StormPlotter:
         # Hiển thị biểu đồ
         plt.xticks(years)  # Đặt nhãn cho các năm
         plt.show()  
-        
+    
+    
+    #hàm này vẽ biểu đồ thống kê các cơn bão theo tháng
     def plot_storms_by_month(self, start_year, end_year):
         # Tạo một dictionary để lưu trữ số lượng cơn bão theo tháng
         monthly_storm_counts = {month: 0 for month in range(1, 13)}
@@ -181,7 +190,9 @@ class StormPlotter:
         plt.tight_layout()
         # Hiển thị biểu đồ
         plt.show()  
-        
+    
+    
+    #hàm này vẽ bản đồ đánh dấu ví trí các cơn bão theo các giá trị kinh độ và vĩ độ    
     def plot_storm_address(self, year):
     
     
@@ -195,10 +206,9 @@ class StormPlotter:
         # Tạo một GeoDataFrame để vẽ
         fig = plt.figure(figsize=(10, 8))
         ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.set_extent([min(longitudes)-5, max(longitudes)+5, min(latitudes)-5, max(latitudes)+5], crs=ccrs.PlateCarree())  # Giới hạn bản đồ
+        ax.set_extent([min(longitudes)+0.5, max(longitudes)+0.5, min(latitudes)+0.5, max(latitudes)+0.5], crs=ccrs.PlateCarree())  # Giới hạn bản đồ
 
         # Thêm các yếu tố bản đồ
-
         ax.add_feature(cfeature.LAND, color='lightgrey')
         ax.add_feature(cfeature.OCEAN, color='lightblue')
         ax.add_feature(cfeature.COASTLINE)
@@ -215,7 +225,7 @@ class StormPlotter:
         plt.show()
         
     
-
+    #hàm này vẽ biểu đồ phân tích xu hướng các biến theo năm
     def analyze_trends(self, variable, start_year, end_year):
         """Phân tích xu hướng cho một biến khí tượng trong khoảng thời gian nhất định."""
         years = range(start_year, end_year + 1)
@@ -243,4 +253,67 @@ class StormPlotter:
         
         plt.grid()
         plt.show()
+    
+    
+    
+    #hàm này vẽ biểu đồ chi tiết giá trị của biến khí tượng theo các mốc áp suất    
+    def plot_data_for_ps(self, negative_file_name,var):
+        ds_negative = self.storm_data.load_data(os.path.join(self.storm_data.negative_dir, negative_file_name))
+        # Lấy dữ liệu nhiệt độ và tọa độ
+        ps = ds_negative.isobaricInhPa.values
+        latitude = ds_negative.latitude.values
+        longitude = ds_negative.longitude.values
+
+        # Tạo một cửa sổ Tkinter
+        root = tk.Tk()
+        root.title(f"{var} Plots")
+
+        # Tạo một khung cuộn
+        canvas = tk.Canvas(root)
+        scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
+
+        # Thiết lập khung cuộn
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Số lượng cột
+        num_columns = 3
+        num_plots = len(ps)
+
+        # Tạo figure và các trục cho các biểu đồ
+        fig, axs = plt.subplots(num_plots // num_columns + (num_plots % num_columns > 0), num_columns, figsize=(17, 4.2 * (num_plots // num_columns + 1)), constrained_layout=True)
+
+        # Chuyển đổi axs thành mảng 1 chiều
+        axs = axs.flatten()
+
+        # Tạo biểu đồ
+        for i, p in enumerate(ps):
+            var_dt = ds_negative[var].sel(isobaricInhPa=p).values
+            im = axs[i].imshow(var_dt, cmap='coolwarm', aspect='auto', extent=[longitude.min(), longitude.max(), latitude.min(), latitude.max()])
+            axs[i].set_title(variables_l[var] + f" tại {p} hPa")
+            axs[i].set_xlabel('Longitude')
+            axs[i].set_ylabel('Latitude')
+            fig.colorbar(im, ax=axs[i])  # Thêm thanh màu cho mỗi biểu đồ
+
+        # Ẩn các trục không sử dụng
+        for j in range(i + 1, len(axs)):
+            axs[j].axis('off')
+
+        # Thêm biểu đồ vào khung cuộn
+        canvas_plot = FigureCanvasTkAgg(fig, master=scrollable_frame)
+        canvas_plot.get_tk_widget().pack()
+        canvas_plot.draw()
+
+        # Đặt các widget cuộn
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Chạy ứng dụng
+        root.mainloop()
         

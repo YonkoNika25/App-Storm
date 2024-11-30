@@ -1,7 +1,11 @@
 import xarray as xr
+import math
+import numpy as np
 import os
 import pandas as pd
 
+
+#danh sách các biến khí tượng và ý nghĩa
 variables = {
     "EPV": "Áp suất hơi nước ",
     "H": "Độ ẩm tương đối",
@@ -24,21 +28,29 @@ class StormData:
         self.positive_dir = positive_dir
         self.negative_dir = negative_dir
 
+
+    #hàm này lấy dánh sách các id của các cơn bão trong một năm
     def get_id(self, year):
         """Lấy danh sách các cơn bão trong năm."""
         positive_files = [f for f in os.listdir(self.positive_dir) if f.startswith(f'POSITIVE_{year}')]
         storm_ids = [f[9:22] for f in positive_files]
         return storm_ids
 
+
+    #hàm này lấy các file negative của id cơn bão đã được chọn
     def get_negative(self, storm_id):
         """Hiển thị các thời điểm trước bão cơn bão."""
         negative_files = [f for f in os.listdir(self.negative_dir) if f.startswith(f'NEGATIVE_{storm_id}')]
         return negative_files
-
+    
+    
+    #hàm này để mở và đọc dữ liệu file có định dạng .nc
     def load_data(self, file_path):
         """Load dữ liệu từ file NetCDF."""
         return xr.open_dataset(file_path)
-
+    
+    
+    #hàm này lấy danh sách các mốc thời gian cho đến khi bão được hình thành
     def get_time(self, storm_id):
         positive_path = [f for f in os.listdir(self.positive_dir) if f.startswith(f'POSITIVE_{storm_id}')][0]
         negative_paths = self.get_negative(storm_id)
@@ -51,6 +63,8 @@ class StormData:
         ans_time.sort()
         return ans_time
     
+    
+    #hàm này tạo 1 dataframe chứa các thông tin của các cơn bão
     def storms_infomation(self, year):
         storms_id = self.get_id(year)
         storm_data = []
@@ -77,6 +91,8 @@ class StormData:
         storm_table = pd.DataFrame(storm_data)
         return storm_table
     
+    
+    #hàm này tạo 1 dataframe chứa thông tin các biến khí tượng
     def list_variable(self,year):
         storm_ids = self.get_id(year)
         storm_id = storm_ids[0]
@@ -91,4 +107,20 @@ class StormData:
             })
         list_table = pd.DataFrame(list)
         return list_table
+    
+    
+    #hàm này tạo 1 dataframe chứa danh sách các file negative ứng với id cơn bão đã được chọn
+    def list_negative(self, id):
+        negative_path = [f for f in os.listdir(self.negative_dir) if f.startswith(f'NEGATIVE_{id}')]
+        negative_path = [s.strip() for s in negative_path]
+        sorted_list = sorted(negative_path, key=lambda x: int(x.split('_')[2]))
+        
+        list = []
+        for path in sorted_list:
+            list.append({
+                'Số thứ tự': len(list) + 1,
+                'Tên file' : path
+            })
+        negative_table = pd.DataFrame(list)
+        return negative_table
     
