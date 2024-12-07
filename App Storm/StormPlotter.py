@@ -6,6 +6,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from PIL import Image
 
 
 #danh sách các biến khí tượng và ý nghĩa
@@ -24,6 +25,18 @@ variables_l = {
     "T": "Nhiệt độ",
     "U": "Thành phần gió theo hướng Đông - Tây ",
     "V": "Thành phần gió theo hướng Bắc - Nam "
+}
+
+storm_classification = {
+    "Tropical Depression": "Cơn bão nhiệt đới",
+    "Tropical Storm": "Bão nhiệt đới",
+    "Severe Tropical Storm": "Bão nhiệt đới mạnh",
+    "Typhoon": "Bão",
+    "Super Typhoon": "Bão siêu mạnh",
+    "Cyclonic Storm": "Bão xoáy",
+    "Severe Cyclonic Storm": "Bão xoáy mạnh",
+    "Subtropical Depression": "Cơn bão cận nhiệt đới",
+    "Very Severe Cyclonic Storm": "Bão xoáy rất mạnh"
 }
 
 class StormPlotter:
@@ -126,6 +139,56 @@ class StormPlotter:
         plt.xticks(years)  # Đặt nhãn cho các năm
         plt.show()  
     
+    #Hàm này vẽ biểu đồ thống kê các cơn bão theo loại bão
+    def plot_storm_by_type(self, start_year, end_year):
+        type_storm_counts = {type: 0 for type in storm_classification.values()}
+        for year in range(start_year, end_year + 1):
+            storm_ids = self.storm_data.get_id(year)  # Lấy danh sách các cơn bão trong năm
+            for id in storm_ids:
+                type_storm_counts[storm_classification[self.storm_data.get_type(id)]] += 1
+                
+        # Tính toán thêm thông tin
+        min_storms_type = min(type_storm_counts, key=type_storm_counts.get)
+        min_storms_count = type_storm_counts[min_storms_type]
+
+        max_storms_type = max(type_storm_counts, key=type_storm_counts.get)
+        max_storms_count = type_storm_counts[max_storms_type]
+        avg_storms = sum(type_storm_counts.values()) / len(type_storm_counts)
+
+        # Vẽ biểu đồ cột
+        types = list(type_storm_counts.keys())
+        counts = list(type_storm_counts.values())
+
+        fig, ax = plt.subplots(figsize=(12, 8))
+        ax.bar( types, counts, color='blue')
+        bars = ax.bar( types, counts, color='blue')
+        
+        if end_year > start_year:
+            title = f"Số lượng cơn bão theo dạng bão từ năm {start_year} đến năm {end_year}"
+        else:
+            title = f"Số lượng cơn bão theo dạng bão trong năm {start_year}"
+        ax.set_title(title)
+        ax.set_xlabel("Phân loại")
+        ax.set_ylabel("Số lượng cơn bão")
+        ax.set_xticks(types)  # Đặt nhãn cho các tháng
+        ax.grid(axis='y')
+    
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2, yval, int(yval), ha='center', va='bottom')
+        
+        
+        # Ghi thông tin bổ sung
+        info_text = (
+            f"Giá trị nhỏ nhất:  {min_storms_count} cơn bão\n"
+            f"Giá trị lớn nhất:  {max_storms_count} cơn bão\n"
+            f"Trung bình số bão các dạng: {avg_storms:.2f}"
+        )
+        ax.text(0.5, -0.15, info_text, transform=ax.transAxes, fontsize=12, ha='center', va='center', color='blue')
+
+        plt.tight_layout()
+        # Hiển thị biểu đồ
+        plt.show()    
     
     #hàm này vẽ biểu đồ thống kê các cơn bão theo tháng
     def plot_storms_by_month(self, start_year, end_year):
@@ -317,3 +380,59 @@ class StormPlotter:
         # Chạy ứng dụng
         root.mainloop()
         
+        
+    def plot_storm_images(self,storms_ids):
+        list_paths = self.storm_data.list_path_image(storms_ids)
+        root = tk.Tk()
+        root.title("Ảnh và đường đi của các cơn bão")
+        
+        # Tạo một khung cuộn
+        canvas = tk.Canvas(root)
+        scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
+
+        # Thiết lập khung cuộn
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Số lượng cột
+        num_columns = 4
+        num_images = len(list_paths)
+
+        # Tạo figure và các trục cho các ảnh
+        fig, axs = plt.subplots(num_images // num_columns + (num_images % num_columns > 0), num_columns, figsize=(17, 4.2 * (num_images // num_columns + 1)), constrained_layout=True)
+
+        # Chuyển đổi axs thành mảng 1 chiều
+        axs = axs.flatten()
+        
+            # Tạo biểu đồ
+        for i, image_path in enumerate(list_paths):
+            img = Image.open(image_path)  # Mở ảnh
+            axs[i].imshow(img)  # Hiển thị ảnh
+            if i % 2 == 0:
+                title = f"Ảnh vệ tinh của cơn bão {self.storm_data.get_name(storms_ids[int(i/2)])}"
+            else:
+                title = f"Ảnh đường đi của cơn bão {self.storm_data.get_name(storms_ids[int(i/2)])}"
+            axs[i].set_title(title)  # Tiêu đề cho mỗi ảnh
+            axs[i].axis('off')  # Tắt trục
+
+        # Ẩn các trục không sử dụng
+        for j in range(i + 1, len(axs)):
+            axs[j].axis('off')
+
+        # Thêm biểu đồ vào khung cuộn
+        canvas_plot = FigureCanvasTkAgg(fig, master=scrollable_frame)
+        canvas_plot.get_tk_widget().pack()
+        canvas_plot.draw()
+
+        # Đặt các widget cuộn
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Chạy ứng dụng
+        root.mainloop()       
